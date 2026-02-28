@@ -7,21 +7,18 @@ type ThemeOption = 'white' | 'blue';
 
 type SettingsState = {
   theme: ThemeOption;
-  alertsEnabled: boolean;
   guardianNumber: string;
 };
 
 type SettingsContextValue = {
   settings: SettingsState;
   setTheme: (value: ThemeOption) => void;
-  setAlertsEnabled: (value: boolean) => void;
   setGuardianNumber: (value: string) => void;
   isLoading: boolean;
 };
 
 const DEFAULT_SETTINGS: SettingsState = {
   theme: 'white',
-  alertsEnabled: true,
   guardianNumber: '0550000000',
 };
 
@@ -40,8 +37,6 @@ export const SettingsProvider: React.FC<React.PropsWithChildren> = ({ children }
           const parsed = JSON.parse(stored) as Partial<SettingsState>;
           setSettings({
             theme: parsed.theme === 'blue' ? 'blue' : 'white',
-            alertsEnabled:
-              typeof parsed.alertsEnabled === 'boolean' ? parsed.alertsEnabled : true,
             guardianNumber:
               typeof parsed.guardianNumber === 'string' && parsed.guardianNumber.trim().length > 0
                 ? parsed.guardianNumber
@@ -79,7 +74,6 @@ export const SettingsProvider: React.FC<React.PropsWithChildren> = ({ children }
     () => ({
       settings,
       setTheme: (value) => setSettings((prev) => ({ ...prev, theme: value })),
-      setAlertsEnabled: (value) => setSettings((prev) => ({ ...prev, alertsEnabled: value })),
       setGuardianNumber: (value) => setSettings((prev) => ({ ...prev, guardianNumber: value })),
       isLoading,
     }),

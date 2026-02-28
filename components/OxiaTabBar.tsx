@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
-const ACTIVE_COLOR = '#8EC5FC';
-const INACTIVE_COLOR = '#A0A0A0';
+const ACTIVE_COLOR = '#0A64C8';
+const INACTIVE_COLOR = '#6E87A5';
 
 const ICON_MAP = {
   index: 'house.fill',
@@ -80,7 +80,7 @@ export function OxiaTabBar({ state, descriptors, navigation }: BottomTabBarProps
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: '#F4F8FF',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 18,
     paddingTop: 6,
   },
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   tabItemActive: {
-    backgroundColor: '#E5F1FF',
+    backgroundColor: '#DBEBFF',
   },
   iconWrapper: {
     width: 42,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F5FF',
+    backgroundColor: '#EAF3FF',
   },
   iconWrapperActive: {
     backgroundColor: ACTIVE_COLOR,
@@ -125,6 +125,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   labelActive: {
-    color: '#4075B6',
+    color: '#0A64C8',
   },
 });

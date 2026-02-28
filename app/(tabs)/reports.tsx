@@ -2,8 +2,6 @@ import React, { useMemo } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
-import { useSettings } from '@/contexts/SettingsContext';
-
 const SCREEN_WIDTH = Dimensions.get('window').width - 48;
 
 const randomRange = (min: number, max: number) =>
@@ -12,8 +10,7 @@ const randomRange = (min: number, max: number) =>
 const dayLabels = ['س', 'أ', 'ن', 'ث', 'ر', 'خ', 'ج'];
 
 export default function ReportsScreen() {
-  const { settings } = useSettings();
-  const backgroundColor = settings.theme === 'blue' ? '#F1F7FF' : '#FFFFFF';
+  const backgroundColor = '#EFF6FF';
 
   const weeklyData = useMemo(() => {
     const airQuality = Array.from({ length: 7 }, () => randomRange(70, 150));

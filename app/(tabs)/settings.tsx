@@ -1,15 +1,16 @@
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 
+import { useProfile } from '@/contexts/ProfileContext';
 import { useSettings } from '@/contexts/SettingsContext';
 
 const themeOptions = [
@@ -18,14 +19,17 @@ const themeOptions = [
 ] as const;
 
 export default function SettingsScreen() {
-  const { settings, setTheme, setAlertsEnabled, setGuardianNumber, isLoading } = useSettings();
+  const router = useRouter();
+  const { resetProfile } = useProfile();
+  const { settings, setTheme, setGuardianNumber, isLoading } = useSettings();
   const [guardianInput, setGuardianInput] = useState(settings.guardianNumber);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     setGuardianInput(settings.guardianNumber);
   }, [settings.guardianNumber]);
 
-  const backgroundColor = settings.theme === 'blue' ? '#F1F7FF' : '#FFFFFF';
+  const backgroundColor = '#EFF6FF';
 
   const handleGuardianBlur = () => {
     const sanitized = guardianInput.trim();
@@ -36,10 +40,20 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await resetProfile();
+      router.replace('/onboarding');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <ScrollView style={[styles.container, { backgroundColor }]} contentContainerStyle={styles.content}>
       <Text style={styles.title}>الإعدادات</Text>
-      <Text style={styles.subtitle}>عدل خيارات Oxia بما يتناسب مع راحتك</Text>
+      <Text style={styles.subtitle}>عدل خيارات نفس بما يتناسب مع راحتك</Text>
 
       {isLoading ? (
         <View style={styles.loader}>
@@ -70,20 +84,6 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>التنبيهات</Text>
-            <Text style={styles.cardHint}>تفعيل أو إيقاف تنبيهات القيم غير الطبيعية</Text>
-            <View style={styles.toggleRow}>
-              <Text style={styles.toggleLabel}>التنبيهات مفعلة</Text>
-              <Switch
-                value={settings.alertsEnabled}
-                onValueChange={(value) => setAlertsEnabled(value)}
-                trackColor={{ true: '#8EC5FC', false: '#CCCCCC' }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-          </View>
-
-          <View style={styles.card}>
             <Text style={styles.cardTitle}>رقم ولي الأمر</Text>
             <Text style={styles.cardHint}>يبقى الرقم محفوظًا محليًا داخل التطبيق فقط</Text>
             <TextInput
@@ -95,6 +95,20 @@ export default function SettingsScreen() {
               placeholder="أدخل رقم ولي الأمر"
               placeholderTextColor="#AAAAAA"
             />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>الحساب</Text>
+            <Text style={styles.cardHint}>عند تسجيل الخروج ستعود إلى صفحة إدخال البيانات الصحية</Text>
+            <TouchableOpacity
+              style={[styles.logoutButton, isLoggingOut && styles.logoutButtonDisabled]}
+              onPress={handleLogout}
+              disabled={isLoggingOut}
+              activeOpacity={0.85}>
+              <Text style={styles.logoutButtonText}>
+                {isLoggingOut ? 'جاري تسجيل الخروج...' : 'تسجيل خروج'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </>
       )}
@@ -115,12 +129,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#444444',
+    color: '#444',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 15,
-    color: '#666666',
+    color: '#666',
     textAlign: 'center',
   },
   loader: {
@@ -134,7 +148,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loaderText: {
-    color: '#666666',
+    color: '#666',
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -152,11 +166,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#444444',
+    color: '#444',
   },
   cardHint: {
     fontSize: 14,
-    color: '#777777',
+    color: '#777',
   },
   themeOptions: {
     flexDirection: 'row',
@@ -178,19 +192,10 @@ const styles = StyleSheet.create({
   themeOptionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666666',
+    color: '#666',
   },
   themeOptionTextActive: {
     color: '#FFFFFF',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  toggleLabel: {
-    fontSize: 16,
-    color: '#444444',
   },
   input: {
     borderWidth: 1,
@@ -199,7 +204,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#444444',
+    color: '#444',
     backgroundColor: '#FFFFFF',
+  },
+  logoutButton: {
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: '#D83C3C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutButtonDisabled: {
+    backgroundColor: '#E9A0A0',
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });

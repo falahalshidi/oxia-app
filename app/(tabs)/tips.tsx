@@ -1,8 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useSettings } from '@/contexts/SettingsContext';
-
 const tipsList = [
   'طريقة استخدام البخاخ بشكل صحيح للحصول على أفضل نتيجة.',
   'تمارين تنفس بسيطة: شهيق عميق لخمس ثوانٍ، زفير بطيء لخمس ثوانٍ.',
@@ -13,8 +11,7 @@ const tipsList = [
 ];
 
 export default function TipsScreen() {
-  const { settings } = useSettings();
-  const backgroundColor = settings.theme === 'blue' ? '#F1F7FF' : '#FFFFFF';
+  const backgroundColor = '#EFF6FF';
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]} contentContainerStyle={styles.content}>
