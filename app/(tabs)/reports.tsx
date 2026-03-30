@@ -2,68 +2,87 @@ import React, { useMemo } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
+import { useBand } from '@/contexts/BandContext';
+import { useSensorData } from '@/contexts/SensorDataContext';
+
 const SCREEN_WIDTH = Dimensions.get('window').width - 48;
 
-const randomRange = (min: number, max: number) =>
-  Math.round(Math.random() * (max - min) + min);
-
-const dayLabels = ['س', 'أ', 'ن', 'ث', 'ر', 'خ', 'ج'];
-
 export default function ReportsScreen() {
+  const { bandState } = useBand();
+  const { recentReadings, isLoading, errorMessage, airQualityAvailable } = useSensorData();
   const backgroundColor = '#EFF6FF';
+  const visibleReadings = useMemo(
+    () => (bandState.isConnected ? recentReadings : []),
+    [bandState.isConnected, recentReadings],
+  );
 
-  const weeklyData = useMemo(() => {
-    const airQuality = Array.from({ length: 7 }, () => randomRange(70, 150));
-    const heartRate = Array.from({ length: 7 }, () => randomRange(60, 110));
-    const humidity = Array.from({ length: 7 }, () => randomRange(35, 65));
+  const chartData = useMemo(() => {
+    const labels = visibleReadings.map((reading) =>
+      new Intl.DateTimeFormat('ar', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(reading.createdAt)),
+    );
+
+    const temperature = visibleReadings.map((reading) => Number(reading.temperature.toFixed(1)));
+    const humidity = visibleReadings.map((reading) => Number(reading.humidity.toFixed(1)));
 
     const average = {
-      airQuality: Math.round(airQuality.reduce((acc, value) => acc + value, 0) / airQuality.length),
-      heartRate: Math.round(heartRate.reduce((acc, value) => acc + value, 0) / heartRate.length),
-      humidity: Math.round(humidity.reduce((acc, value) => acc + value, 0) / humidity.length),
+      temperature:
+        temperature.length > 0
+          ? Number((temperature.reduce((acc, value) => acc + value, 0) / temperature.length).toFixed(1))
+          : null,
+      humidity:
+        humidity.length > 0
+          ? Number((humidity.reduce((acc, value) => acc + value, 0) / humidity.length).toFixed(1))
+          : null,
     };
 
     return {
       chart: {
-        labels: dayLabels,
+        labels: labels.length > 0 ? labels : ['--'],
         datasets: [
           {
-            data: airQuality,
-            color: () => '#8EC5FC',
+            data: temperature.length > 0 ? temperature : [0],
+            color: () => '#F28B54',
             strokeWidth: 3,
           },
           {
-            data: heartRate,
-            color: () => '#70D6FF',
-            strokeWidth: 3,
-          },
-          {
-            data: humidity,
-            color: () => '#4CAF50',
+            data: humidity.length > 0 ? humidity : [0],
+            color: () => '#4A90E2',
             strokeWidth: 3,
           },
         ],
-        legend: ['جودة الهواء', 'نبض القلب', 'الرطوبة'],
+        legend: ['الحرارة', 'الرطوبة'],
       },
       average,
     };
-  }, []);
+  }, [visibleReadings]);
+
+  const summaryText = !bandState.isConnected
+    ? 'اربط السوار أولًا لعرض سجل الجهاز المتصل'
+    : isLoading
+      ? 'جاري تحميل السجل المباشر من Supabase...'
+      : recentReadings.length === 0
+        ? 'لا توجد قراءات تاريخية للجهاز المتصل حاليًا'
+        : 'آخر 7 قراءات محفوظة في قاعدة البيانات للجهاز المتصل';
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>تقارير الأسبوع</Text>
-      <Text style={styles.subtitle}>ملخص سريع لقراءاتك المحلية خلال الأيام السبعة الماضية</Text>
+      <Text style={styles.title}>التقارير المباشرة</Text>
+      <Text style={styles.subtitle}>{summaryText}</Text>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
       <View style={styles.chartCard}>
         <LineChart
-          data={weeklyData.chart}
+          data={chartData.chart}
           width={SCREEN_WIDTH}
           height={220}
           chartConfig={{
             backgroundColor: '#FFFFFF',
             backgroundGradientFrom: '#FFFFFF',
             backgroundGradientTo: '#FFFFFF',
-            decimalPlaces: 0,
+            decimalPlaces: 1,
             color: (opacity = 1) => `rgba(68, 68, 68, ${opacity})`,
             labelColor: () => '#888888',
             propsForDots: {
@@ -83,19 +102,23 @@ export default function ReportsScreen() {
 
       <View style={styles.summaryWrapper}>
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>متوسط جودة الهواء</Text>
-          <Text style={styles.summaryValue}>{weeklyData.average.airQuality} AQI</Text>
-          <Text style={styles.summaryHint}>القيمة المثالية أقل من 150</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>متوسط نبض القلب</Text>
-          <Text style={styles.summaryValue}>{weeklyData.average.heartRate} bpm</Text>
-          <Text style={styles.summaryHint}>المعدل المريح بين 60 و 100</Text>
+          <Text style={styles.summaryTitle}>متوسط الحرارة</Text>
+          <Text style={styles.summaryValue}>
+            {chartData.average.temperature !== null ? `${chartData.average.temperature} °م` : '--'}
+          </Text>
+          <Text style={styles.summaryHint}>محسوب من آخر 7 قراءات حقيقية</Text>
         </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>متوسط الرطوبة</Text>
-          <Text style={styles.summaryValue}>{weeklyData.average.humidity}%</Text>
-          <Text style={styles.summaryHint}>القيم المثلى بين 40% و 60%</Text>
+          <Text style={styles.summaryValue}>
+            {chartData.average.humidity !== null ? `${chartData.average.humidity}%` : '--'}
+          </Text>
+          <Text style={styles.summaryHint}>محسوب من آخر 7 قراءات حقيقية</Text>
+        </View>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>جودة الهواء</Text>
+          <Text style={styles.summaryValueMuted}>{airQualityAvailable ? 'متوفر' : '--'}</Text>
+          {airQualityAvailable ? <Text style={styles.summaryHint}>متصل ببيانات المستشعر</Text> : null}
         </View>
       </View>
     </ScrollView>
@@ -123,6 +146,12 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#C43D3D',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   chartCard: {
     alignItems: 'center',
@@ -163,7 +192,13 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#8EC5FC',
+    color: '#4A90E2',
+    marginTop: 8,
+  },
+  summaryValueMuted: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#8A9EB6',
     marginTop: 8,
   },
   summaryHint: {

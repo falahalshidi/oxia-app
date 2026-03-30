@@ -56,7 +56,6 @@ export function OxiaTabBar({ state, descriptors, navigation }: BottomTabBarProps
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
               accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarTestID}
               onPress={onPress}
               onLongPress={onLongPress}
               style={[styles.tabItem, isFocused && styles.tabItemActive]}>

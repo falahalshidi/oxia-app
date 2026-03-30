@@ -43,7 +43,7 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     if (!isLoading && profile.completed) {
-      router.replace('/(tabs)');
+      router.replace('/');
     }
   }, [isLoading, profile.completed, router]);
 
@@ -66,7 +66,7 @@ export default function OnboardingScreen() {
         triggers,
         symptoms,
       });
-      router.replace('/(tabs)');
+      router.replace('/');
     } finally {
       setIsSaving(false);
     }

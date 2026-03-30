@@ -3,14 +3,14 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useBand } from '@/contexts/BandContext';
+import { useSensorData } from '@/contexts/SensorDataContext';
 
-const fakeBands = [
-  { id: 'band-1', name: 'سوار نفس', signal: 'قوي جدًا' },
-] as const;
+const getDeviceDisplayName = (deviceId: string) => (deviceId.toLowerCase() === 'esp32_01' ? 'نفس' : deviceId);
 
 export default function BraceletScreen() {
   const router = useRouter();
   const { bandState, connectBand, disconnectBand, isLoading } = useBand();
+  const { availableDevices, isLoading: isSensorLoading } = useSensorData();
   const [connectingId, setConnectingId] = useState<string | null>(null);
 
   const connectedLabel = useMemo(() => {
@@ -38,7 +38,7 @@ export default function BraceletScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.heroCard}>
         <Text style={styles.title}>ربط السوار الذكي</Text>
-        <Text style={styles.subtitle}>اختر أي سوار وهمي للتجربة في العرض التقديمي</Text>
+        <Text style={styles.subtitle}>الأجهزة هنا تُقرأ مباشرة من Supabase وليس من بيانات وهمية</Text>
       </View>
 
       <View style={styles.statusCard}>
@@ -55,22 +55,36 @@ export default function BraceletScreen() {
 
       <Text style={styles.sectionTitle}>الأجهزة المتاحة</Text>
 
-      {fakeBands.map((band) => {
-        const isConnecting = connectingId === band.id;
-        const isCurrent = bandState.bandName === band.name && bandState.isConnected;
+      {isSensorLoading ? (
+        <View style={styles.emptyCard}>
+          <ActivityIndicator size="small" color="#0A64C8" />
+          <Text style={styles.emptyText}>جاري تحميل الأجهزة من قاعدة البيانات...</Text>
+        </View>
+      ) : null}
+
+      {!isSensorLoading && availableDevices.length === 0 ? (
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyText}>لا توجد أجهزة متاحة حاليًا في جدول `sensor_data`.</Text>
+        </View>
+      ) : null}
+
+      {availableDevices.map((deviceId) => {
+        const isConnecting = connectingId === deviceId;
+        const isCurrent = bandState.bandName === deviceId && bandState.isConnected;
+        const displayName = getDeviceDisplayName(deviceId);
 
         return (
-          <View key={band.id} style={styles.bandCard}>
+          <View key={deviceId} style={styles.bandCard}>
             <View style={styles.bandHeader}>
-              <Text style={styles.bandName}>{band.name}</Text>
+              <Text style={styles.bandName}>{displayName}</Text>
               <View style={styles.signalPill}>
-                <Text style={styles.signalText}>{band.signal}</Text>
+                <Text style={styles.signalText}>بث مباشر</Text>
               </View>
             </View>
 
             <TouchableOpacity
               style={[styles.connectButton, isCurrent && styles.connectedButton]}
-              onPress={() => handleConnect(band.name, band.id)}
+              onPress={() => handleConnect(deviceId, deviceId)}
               disabled={isConnecting || isCurrent || isLoading}
               activeOpacity={0.9}>
               {isConnecting ? (
@@ -150,6 +164,21 @@ const styles = StyleSheet.create({
   disconnectButtonText: {
     color: '#B73434',
     fontWeight: '700',
+  },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DEEBFF',
+    padding: 18,
+    gap: 10,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#5E7FA1',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   sectionTitle: {
     fontSize: 18,

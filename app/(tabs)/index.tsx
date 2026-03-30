@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -14,26 +14,15 @@ import {
 } from 'react-native';
 
 import { useBand } from '@/contexts/BandContext';
+import { useSensorData } from '@/contexts/SensorDataContext';
 import { useSettings } from '@/contexts/SettingsContext';
 
-type MetricKey = 'airQuality' | 'heartRate' | 'humidity';
+type MetricKey = 'airQuality' | 'temperature' | 'humidity';
 
-type Metrics = Record<MetricKey, number>;
-
-const ZERO_METRICS: Metrics = {
-  airQuality: 0,
-  heartRate: 0,
-  humidity: 0,
-};
-
-const THRESHOLDS: Record<MetricKey, { min: number; max: number }> = {
-  airQuality: {
-    min: 0,
-    max: 150,
-  },
-  heartRate: {
-    min: 55,
-    max: 120,
+const THRESHOLDS: Record<Exclude<MetricKey, 'airQuality'>, { min: number; max: number }> = {
+  temperature: {
+    min: 18,
+    max: 30,
   },
   humidity: {
     min: 30,
@@ -45,55 +34,41 @@ const AMBULANCE_NUMBER = '997';
 
 const metricTitle: Record<MetricKey, string> = {
   airQuality: 'جودة الهواء',
-  heartRate: 'نبض القلب',
+  temperature: 'درجة الحرارة',
   humidity: 'الرطوبة',
 };
 
-const randomBetween = (min: number, max: number) => Math.round(Math.random() * (max - min) + min);
+const getDeviceDisplayName = (deviceId: string) => (deviceId.toLowerCase() === 'esp32_01' ? 'نفس' : deviceId);
 
-const randomShift = (current: number, min: number, max: number, variance: number) => {
-  const shift = (Math.random() - 0.5) * variance;
-  const next = Math.min(max, Math.max(min, current + shift));
-  return Math.round(next);
+const formatLastUpdated = (value: string | null) => {
+  if (!value) {
+    return 'لا توجد قراءة بعد';
+  }
+
+  return new Intl.DateTimeFormat('ar', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(new Date(value));
 };
 
 export default function HomeScreen() {
   const { settings } = useSettings();
   const { bandState, isLoading: isBandLoading } = useBand();
+  const { currentReading, isLoading, errorMessage, lastUpdatedAt, airQualityAvailable } = useSensorData();
   const router = useRouter();
-
-  const [metrics, setMetrics] = useState<Metrics>(ZERO_METRICS);
   const [isSosOpen, setIsSosOpen] = useState(false);
   const [isSharingLocation, setIsSharingLocation] = useState(false);
 
   const backgroundColor = '#EFF6FF';
 
-  useEffect(() => {
-    if (!bandState.isConnected) {
-      setMetrics(ZERO_METRICS);
-      return;
-    }
-
-    setMetrics({
-      airQuality: randomBetween(72, 110),
-      heartRate: randomBetween(66, 88),
-      humidity: randomBetween(40, 55),
-    });
-
-    const interval = setInterval(() => {
-      setMetrics((prev) => {
-        const next: Metrics = {
-          airQuality: randomShift(prev.airQuality, 40, 180, 16),
-          heartRate: randomShift(prev.heartRate, 52, 140, 14),
-          humidity: randomShift(prev.humidity, 25, 85, 10),
-        };
-
-        return next;
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [bandState.isConnected]);
+  const activeMetrics = useMemo(
+    () => ({
+      temperature: bandState.isConnected ? currentReading?.temperature ?? null : null,
+      humidity: bandState.isConnected ? currentReading?.humidity ?? null : null,
+    }),
+    [bandState.isConnected, currentReading?.humidity, currentReading?.temperature],
+  );
 
   const handleCall = async (phone: string) => {
     try {
@@ -131,36 +106,57 @@ export default function HomeScreen() {
   };
 
   const renderMetricCard = (key: MetricKey) => {
-    const value = metrics[key];
+    if (key === 'airQuality') {
+      return (
+        <View key={key} style={styles.metricCard}>
+          <Text style={styles.metricTitle}>{metricTitle[key]}</Text>
+          <Text style={styles.metricValueMuted}>{airQualityAvailable ? 'متوفر' : '--'}</Text>
+          {airQualityAvailable ? (
+            <Text style={[styles.metricStatus, styles.metricStatusMuted]}>القراءة مرتبطة بقاعدة البيانات</Text>
+          ) : null}
+        </View>
+      );
+    }
+
+    const value = activeMetrics[key];
     const { min, max } = THRESHOLDS[key];
     const isConnected = bandState.isConnected;
-    const isNormal = isConnected && value >= min && value <= max;
+    const hasValue = typeof value === 'number';
+    const isNormal = hasValue && value >= min && value <= max;
 
     return (
       <View key={key} style={styles.metricCard}>
         <Text style={styles.metricTitle}>{metricTitle[key]}</Text>
         <Text style={styles.metricValue}>
-          {value}
-          {key === 'heartRate' ? ' bpm' : key === 'humidity' ? ' %' : ' AQI'}
+          {hasValue ? value.toFixed(1) : '--'}
+          {key === 'humidity' ? ' %' : ' °م'}
         </Text>
         <Text
           style={[
             styles.metricStatus,
-            !isConnected && styles.metricStatusMuted,
-            isConnected && !isNormal && styles.metricStatusWarning,
+            (!isConnected || !hasValue) && styles.metricStatusMuted,
+            isConnected && hasValue && !isNormal && styles.metricStatusWarning,
           ]}>
-          {!isConnected ? 'بانتظار ربط السوار' : isNormal ? 'الحالة مستقرة' : 'تنبيه: تحقق من الحالة'}
+          {!isConnected
+            ? 'بانتظار ربط السوار'
+            : !hasValue
+              ? isLoading
+                ? 'جاري تحميل القراءة المباشرة...'
+                : 'لا توجد قراءة حالية لهذا الجهاز'
+              : isNormal
+                ? 'الحالة مستقرة'
+                : 'تنبيه: تحقق من الحالة'}
         </Text>
       </View>
     );
   };
 
   return (
-    <View style={[styles.container, { backgroundColor }]}> 
+    <View style={[styles.container, { backgroundColor }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCard}>
           <Text style={styles.title}>لوحة نفس</Text>
-          <Text style={styles.subtitle}>لوحة متابعة مباشرة لحالتك الحيوية وجودة الهواء</Text>
+          <Text style={styles.subtitle}>قراءات مباشرة من Supabase تتحدث فور أي تغيير في sensor_data</Text>
           <View style={styles.connectionPill}>
             <View
               style={[
@@ -172,10 +168,12 @@ export default function HomeScreen() {
               {isBandLoading
                 ? 'جاري تحميل حالة السوار...'
                 : bandState.isConnected
-                  ? `متصل: ${bandState.bandName ?? 'سوار نفس'}`
+                  ? `متصل: ${bandState.bandName ? getDeviceDisplayName(bandState.bandName) : 'الجهاز'}`
                   : 'غير متصل'}
             </Text>
           </View>
+          <Text style={styles.updatedText}>آخر تحديث: {formatLastUpdated(lastUpdatedAt)}</Text>
+          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           <TouchableOpacity style={styles.connectButton} onPress={() => router.push('/bracelet')} activeOpacity={0.9}>
             <Text style={styles.connectButtonText}>
               {bandState.isConnected ? 'إدارة اتصال السوار' : 'ربط السوار الآن'}
@@ -183,7 +181,9 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.metricsWrapper}>{(Object.keys(metrics) as MetricKey[]).map(renderMetricCard)}</View>
+        <View style={styles.metricsWrapper}>
+          {(['airQuality', 'temperature', 'humidity'] as MetricKey[]).map(renderMetricCard)}
+        </View>
 
         <TouchableOpacity style={styles.sosButton} activeOpacity={0.85} onPress={() => setIsSosOpen(true)}>
           <Text style={styles.sosLabel}>SOS</Text>
@@ -280,6 +280,18 @@ const styles = StyleSheet.create({
     color: '#214466',
     fontWeight: '600',
   },
+  updatedText: {
+    textAlign: 'center',
+    color: '#5A7899',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  errorText: {
+    textAlign: 'center',
+    color: '#C43D3D',
+    fontSize: 13,
+    lineHeight: 18,
+  },
   connectButton: {
     marginTop: 4,
     backgroundColor: '#0A64C8',
@@ -317,6 +329,12 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: '800',
     color: '#0A64C8',
+    marginTop: 8,
+  },
+  metricValueMuted: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#8A9EB6',
     marginTop: 8,
   },
   metricStatus: {
