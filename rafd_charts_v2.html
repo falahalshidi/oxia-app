@@ -1,0 +1,147 @@
+
+<h2 class="sr-only">رسوم بيانية لنمو رفد وحجم السوق خلال 5 سنوات</h2>
+<div style="direction:rtl;font-family:var(--font-sans),sans-serif;padding:1.2rem 1rem;">
+
+<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:1.2rem;">
+  <div style="background:var(--color-background-secondary);border-radius:10px;padding:.8rem;">
+    <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;">السنة 1</div>
+    <div style="font-size:18px;font-weight:500;color:#0F6E56;">195</div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px;">مشروع · 3.9م ر.ع</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:10px;padding:.8rem;">
+    <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;">السنة 2</div>
+    <div style="font-size:18px;font-weight:500;color:#0F6E56;">468</div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px;">مشروع · 9.4م ر.ع</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:10px;padding:.8rem;">
+    <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;">السنة 3</div>
+    <div style="font-size:18px;font-weight:500;color:#0F6E56;">858</div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px;">مشروع · 17.2م ر.ع</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:10px;padding:.8rem;">
+    <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;">السنة 4</div>
+    <div style="font-size:18px;font-weight:500;color:#0F6E56;">1,365</div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px;">مشروع · 27.3م ر.ع</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:10px;padding:.8rem;">
+    <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;">السنة 5</div>
+    <div style="font-size:18px;font-weight:500;color:#0F6E56;">1,950</div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px;">مشروع · 39م ر.ع</div>
+  </div>
+</div>
+
+<div style="background:var(--color-background-secondary);border-radius:14px;padding:1rem;margin-bottom:1.2rem;">
+  <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.6rem;">نمو الإيرادات سنة بسنة (مليون ر.ع)</div>
+  <div style="display:flex;gap:6px;margin-bottom:6px;font-size:10px;color:var(--color-text-tertiary);">
+    <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>إيرادات</span>
+    <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#9FE1CB;display:inline-block;"></span>مشاريع (÷10)</span>
+  </div>
+  <div style="position:relative;width:100%;height:220px;"><canvas id="c1"></canvas></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.2rem;">
+  <div style="background:var(--color-background-secondary);border-radius:14px;padding:1rem;">
+    <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.6rem;">حصة رفد من السوق — السنة 5</div>
+    <div style="display:flex;gap:10px;margin-bottom:8px;font-size:10px;color:var(--color-text-tertiary);">
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>رفد 5%</span>
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#9FE1CB;display:inline-block;"></span>السوق 95%</span>
+    </div>
+    <div style="position:relative;width:100%;height:180px;"><canvas id="c2"></canvas></div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:14px;padding:1rem;">
+    <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.6rem;">توزيع مستخدمي رفد — السنة 5</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:10px;color:var(--color-text-tertiary);">
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#0F6E56;display:inline-block;"></span>مشاريع 62%</span>
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#5DCAA5;display:inline-block;"></span>مستثمرون 30%</span>
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:9px;height:9px;border-radius:2px;background:#9FE1CB;display:inline-block;"></span>شركاء 8%</span>
+    </div>
+    <div style="position:relative;width:100%;height:180px;"><canvas id="c3"></canvas></div>
+  </div>
+</div>
+
+<div style="background:var(--color-background-secondary);border-radius:14px;padding:1rem;">
+  <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.6rem;">منحنى اختراق السوق — نسبة من SAM</div>
+  <div style="position:relative;width:100%;height:170px;"><canvas id="c4"></canvas></div>
+  <div style="font-size:10px;color:var(--color-text-tertiary);text-align:center;margin-top:.5rem;">المصدر: وزارة المالية عُمان · OMANET · تقديرات رفد الداخلية</div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+window.addEventListener('load', function() {
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const tc = isDark ? '#9c9a92' : '#888780';
+  const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+  const years = ['س1','س2','س3','س4','س5'];
+
+  Chart.defaults.font.family = 'sans-serif';
+  Chart.defaults.font.size = 11;
+
+  new Chart(document.getElementById('c1'), {
+    type: 'bar',
+    data: {
+      labels: years,
+      datasets: [
+        { label: 'إيرادات م.ر.ع', data: [3.9,9.4,17.2,27.3,39], backgroundColor: '#1D9E75', borderRadius: 5, borderSkipped: false },
+        { label: 'مشاريع ÷10', data: [19.5,46.8,85.8,136.5,195], backgroundColor: '#9FE1CB', borderRadius: 5, borderSkipped: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: tc }, grid: { display: false } },
+        y: { ticks: { color: tc, callback: v => v+'م' }, grid: { color: gc }, beginAtZero: true }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('c2'), {
+    type: 'pie',
+    data: {
+      labels: ['رفد','السوق المتاح'],
+      datasets: [{ data: [5,95], backgroundColor: ['#1D9E75', isDark ? '#085041' : '#E1F5EE'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' '+c.parsed+'%' } } }
+    }
+  });
+
+  new Chart(document.getElementById('c3'), {
+    type: 'doughnut',
+    data: {
+      labels: ['أصحاب مشاريع','مستثمرون','شركاء'],
+      datasets: [{ data: [62,30,8], backgroundColor: ['#0F6E56','#5DCAA5','#9FE1CB'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' '+c.parsed+'%' } } }
+    }
+  });
+
+  new Chart(document.getElementById('c4'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'اختراق %',
+        data: [0.5,1.2,2.2,3.5,5.0],
+        borderColor: '#1D9E75',
+        backgroundColor: isDark ? 'rgba(29,158,117,0.15)' : 'rgba(29,158,117,0.08)',
+        fill: true, tension: 0.4,
+        pointBackgroundColor: '#1D9E75', pointRadius: 5, borderWidth: 2.5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: tc }, grid: { display: false } },
+        y: { ticks: { color: tc, callback: v => v+'%' }, grid: { color: gc }, beginAtZero: true, max: 6 }
+      }
+    }
+  });
+});
+</script>

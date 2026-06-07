@@ -26,6 +26,10 @@ export default function ReportsScreen() {
 
     const temperature = visibleReadings.map((reading) => Number(reading.temperature.toFixed(1)));
     const humidity = visibleReadings.map((reading) => Number(reading.humidity.toFixed(1)));
+    const gas = visibleReadings
+      .map((reading) => reading.gas)
+      .filter((value): value is number => typeof value === 'number')
+      .map((value) => Number(value.toFixed(1)));
 
     const average = {
       temperature:
@@ -36,6 +40,8 @@ export default function ReportsScreen() {
         humidity.length > 0
           ? Number((humidity.reduce((acc, value) => acc + value, 0) / humidity.length).toFixed(1))
           : null,
+      gas:
+        gas.length > 0 ? Number((gas.reduce((acc, value) => acc + value, 0) / gas.length).toFixed(1)) : null,
     };
 
     return {
@@ -117,8 +123,12 @@ export default function ReportsScreen() {
         </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>جودة الهواء</Text>
-          <Text style={styles.summaryValueMuted}>{airQualityAvailable ? 'متوفر' : '--'}</Text>
-          {airQualityAvailable ? <Text style={styles.summaryHint}>متصل ببيانات المستشعر</Text> : null}
+          <Text style={chartData.average.gas !== null ? styles.summaryValue : styles.summaryValueMuted}>
+            {chartData.average.gas !== null ? `${chartData.average.gas} ppm` : '--'}
+          </Text>
+          <Text style={styles.summaryHint}>
+            {airQualityAvailable ? 'متوسط آخر قراءات الغاز المحفوظة' : 'لا توجد قراءات غاز محفوظة حاليًا'}
+          </Text>
         </View>
       </View>
     </ScrollView>

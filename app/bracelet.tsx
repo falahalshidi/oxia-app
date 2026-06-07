@@ -10,8 +10,9 @@ const getDeviceDisplayName = (deviceId: string) => (deviceId.toLowerCase() === '
 export default function BraceletScreen() {
   const router = useRouter();
   const { bandState, connectBand, disconnectBand, isLoading } = useBand();
-  const { availableDevices, isLoading: isSensorLoading } = useSensorData();
+  const { availableDevices, isLoading: isSensorLoading, saveSensorReading } = useSensorData();
   const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [isSavingSample, setIsSavingSample] = useState(false);
 
   const connectedLabel = useMemo(() => {
     if (!bandState.connectedAt) {
@@ -34,11 +35,41 @@ export default function BraceletScreen() {
     }, 1200);
   };
 
+  const handleSaveSampleReading = async () => {
+    const deviceId = bandState.bandName ?? availableDevices[0] ?? 'esp32_01';
+
+    setIsSavingSample(true);
+    try {
+      await saveSensorReading({
+        deviceId,
+        temperature: 22 + Math.random() * 8,
+        humidity: 40 + Math.random() * 25,
+      });
+      Alert.alert('تم حفظ القراءة', `تم إرسال قراءة جديدة للجهاز ${deviceId} إلى Supabase.`);
+    } catch (error) {
+      console.warn('Failed to save sample reading', error);
+      Alert.alert('تعذر حفظ القراءة', 'فشل إرسال القراءة إلى Supabase.');
+    } finally {
+      setIsSavingSample(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.heroCard}>
         <Text style={styles.title}>ربط السوار الذكي</Text>
         <Text style={styles.subtitle}>الأجهزة هنا تُقرأ مباشرة من Supabase وليس من بيانات وهمية</Text>
+        <TouchableOpacity
+          style={[styles.sampleButton, isSavingSample && styles.sampleButtonDisabled]}
+          onPress={handleSaveSampleReading}
+          disabled={isSavingSample}
+          activeOpacity={0.85}>
+          {isSavingSample ? (
+            <ActivityIndicator size="small" color="#0A64C8" />
+          ) : (
+            <Text style={styles.sampleButtonText}>إرسال قراءة تجريبية إلى Supabase</Text>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.statusCard}>
@@ -118,6 +149,26 @@ const styles = StyleSheet.create({
     borderColor: '#DCEAFF',
     padding: 18,
     gap: 6,
+  },
+  sampleButton: {
+    marginTop: 8,
+    minHeight: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#CFE2FF',
+    backgroundColor: '#F5FAFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  sampleButtonDisabled: {
+    opacity: 0.7,
+  },
+  sampleButtonText: {
+    color: '#0A64C8',
+    fontSize: 14,
+    fontWeight: '700',
   },
   title: {
     fontSize: 24,

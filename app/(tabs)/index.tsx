@@ -64,10 +64,11 @@ export default function HomeScreen() {
 
   const activeMetrics = useMemo(
     () => ({
+      airQuality: bandState.isConnected ? currentReading?.gas ?? null : null,
       temperature: bandState.isConnected ? currentReading?.temperature ?? null : null,
       humidity: bandState.isConnected ? currentReading?.humidity ?? null : null,
     }),
-    [bandState.isConnected, currentReading?.humidity, currentReading?.temperature],
+    [bandState.isConnected, currentReading?.gas, currentReading?.humidity, currentReading?.temperature],
   );
 
   const handleCall = async (phone: string) => {
@@ -107,12 +108,23 @@ export default function HomeScreen() {
 
   const renderMetricCard = (key: MetricKey) => {
     if (key === 'airQuality') {
+      const airQualityValue = activeMetrics.airQuality;
+      const hasAirQuality = typeof airQualityValue === 'number';
       return (
         <View key={key} style={styles.metricCard}>
           <Text style={styles.metricTitle}>{metricTitle[key]}</Text>
-          <Text style={styles.metricValueMuted}>{airQualityAvailable ? 'متوفر' : '--'}</Text>
-          {airQualityAvailable ? (
-            <Text style={[styles.metricStatus, styles.metricStatusMuted]}>القراءة مرتبطة بقاعدة البيانات</Text>
+          <Text style={hasAirQuality ? styles.metricValue : styles.metricValueMuted}>
+            {hasAirQuality ? airQualityValue.toFixed(1) : '--'}
+            {hasAirQuality ? ' ppm' : ''}
+          </Text>
+          {!hasAirQuality ? (
+            <Text style={[styles.metricStatus, styles.metricStatusMuted]}>
+              {!bandState.isConnected
+                ? 'بانتظار ربط السوار'
+                : isLoading
+                  ? 'جاري تحميل قراءة جودة الهواء...'
+                  : 'لا توجد قراءة غاز حالية لهذا الجهاز'}
+            </Text>
           ) : null}
         </View>
       );
